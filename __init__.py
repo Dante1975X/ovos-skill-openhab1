@@ -69,7 +69,7 @@ class openHABSkill(OVOSSkill):
         #self.register_intent(what_status_intent, self.handle_what_status_intent)
         self.register_entity_file('item.entity')
         self.register_entity_file('requesttype.entity')
-        self.register_intent_file('what.status.intent',self.handle_what_status_intent)
+        #self.register_intent_file('what.status.intent',self.handle_what_status_intent)
 
         setTemp_status_intent = IntentBuilder("SetTemp_StatusIntent").require("ThermostatStatusKeyword").require("Item").require("TempValue").build()
         self.register_intent(setTemp_status_intent, self.handle_setTemp_status_intent)
@@ -107,7 +107,7 @@ class openHABSkill(OVOSSkill):
 
         if self.url is None:
             self.log.error("Configuration needed!")
-            self.speak_dialog('ConfigurationNeeded')
+          #  self.speak_dialog('ConfigurationNeeded')
         else:
             requestUrl = self.url+"/items?recursive=false"
 
@@ -197,10 +197,14 @@ class openHABSkill(OVOSSkill):
         ohItem = self.findItemName(self.lightingSwitchableItemsDic, messageItem)
 
         if ohItem is not None:
-            if (command != "on") and (command != "off"):
+            if (command != "an") and (command != "aus"):
                 self.speak_dialog('ErrorDialog')
             else:
-                statusCode = self.sendCommandToItem(ohItem, command.upper())
+                if command == "an":
+                    befehl = "ON"
+                else:
+                    befehl = "OFF"
+                statusCode = self.sendCommandToItem(ohItem, befehl)
                 if statusCode == 200:
                     self.speak_dialog('StatusOnOff', {'command': command, 'item': messageItem})
                 elif statusCode == 404:
@@ -225,8 +229,8 @@ class openHABSkill(OVOSSkill):
 
         if ohItem is not None:
             #if ((command == "set") or (command == "imposta") or (command == "setze") or (command == "pone")):
-            if self.voc_match(command, 'Set'):
-                if ((brightValue is None) or (int(brightValue) < 0) or (int(brightValue) > 100)):
+            if ((command == "stelle") or (command == "Stelle") or (command == "setze") or (command == "Setze")):
+                if ((brightValue is None) or (int(brightValue) < 0) or (int(brightValue) > 2400)):
                     self.speak_dialog('ErrorDialog')
                 else:
                     statusCode = self.sendCommandToItem(ohItem, brightValue)
@@ -249,8 +253,8 @@ class openHABSkill(OVOSSkill):
 
                     if (newBrightValue < 0):
                         newBrightValue = 0
-                    elif (newBrightValue > 100):
-                        newBrightValue = 100
+                    elif (newBrightValue > 2400):
+                        newBrightValue = 2400
                     else:
                         pass
 
@@ -270,40 +274,6 @@ class openHABSkill(OVOSSkill):
 
         else:
             self.log.error("Item not found!")
-            self.speak_dialog('ItemNotFoundError')
-
-    def handle_what_status_intent(self, message):
-
-        messageItem = message.data.get('item')
-        self.log.debug("Item: %s" % (messageItem))
-        requestType = message.data.get('requesttype')
-        self.log.debug("Request Type: %s" % (requestType))
-
-        unitOfMeasure = self.translate('Degree')
-        infoType = self.translate('Temperature')
-
-        self.currStatusItemsDic = dict()
-
-        if self.voc_match(requestType, 'Temperature'):
-            self.currStatusItemsDic.update(self.currentTempItemsDic)
-        elif self.voc_match(requestType, 'Humidity'):
-            unitOfMeasure = self.translate('Percentage')
-            infoType = self.translate('Humidity')
-            self.currStatusItemsDic.update(self.currentHumItemsDic)
-        elif self.voc_match(requestType, 'Status'):
-            infoType = self.translate('Status')
-            unitOfMeasure = ""
-            self.currStatusItemsDic.update(self.switchableItemsDic)
-        else:
-            self.currStatusItemsDic.update(self.targetTemperatureItemsDic)
-
-        ohItem = self.findItemName(self.currStatusItemsDic, messageItem)
-
-        if ohItem is not None:
-            state = self.getCurrentItemStatus(ohItem)
-            self.speak_dialog('TempHumStatus', {'item': messageItem, 'temp_hum': infoType, 'temp_hum_val': state, 'units_of_measurement': unitOfMeasure})
-        else:
-            self.log.error(f"Item {messageItem} not found!")
             self.speak_dialog('ItemNotFoundError')
 
     def handle_setTemp_status_intent(self, message):

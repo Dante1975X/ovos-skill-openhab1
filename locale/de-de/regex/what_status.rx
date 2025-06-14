@@ -1,1 +1,1 @@
-(was ist|wie ist|worauf ist) (der|die|) (?P<Item>.*) (?P<RequestType>Status|Temperatur|Feuchtigkeit|eingestellt|reguliert|angepasst)
+(openhab was ist|openhab wie ist|openhab worauf ist) (der|die|) (?P<Item>.*) (?P<RequestType>Status|Temperatur|Feuchtigkeit|eingestellt|reguliert|angepasst)
